@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/splide/dist/css/themes/splide-default.min.css";
+
 function Popular() {
 
   const [popular, setPopular] = useState ([]);
@@ -12,19 +13,26 @@ function Popular() {
   },[])
   
   const getPopular = async () => {
-    const appId = process.env.REACT_APP_EDAMAM_APP_ID;
-    const appKey = process.env.REACT_APP_EDAMAM_APP_KEY;
-    const number = 10;
 
-    const apiUrl = `https://api.edamam.com/search?q=popular&app_id=${appId}&app_key=${appKey}&to=${number}`;
+    const storedData = localStorage.getItem("popular");
 
-    try {
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-      setPopular(data.hits)
-      console.log(data.hits);
-    } catch (error) {
-      console.error("Error:", error);
+    if (storedData) {
+      setPopular(JSON.parse(storedData));
+    } else {
+      const appId = process.env.REACT_APP_EDAMAM_APP_ID;
+      const appKey = process.env.REACT_APP_EDAMAM_APP_KEY;
+      const number = 10;
+      const apiUrl = `https://api.edamam.com/search?q=popular&app_id=${appId}&app_key=${appKey}&to=${number}`;
+
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        localStorage.setItem("popular", JSON.stringify(data.hits));
+        setPopular(data.hits);
+        console.log(data.hits);
+      } catch (error) {
+        console.error("Error:", error);
+      }
     }
   };
 
@@ -42,13 +50,13 @@ function Popular() {
         arrows: false,
         pagination: false,
         drag: 'free', 
-        gap: "5 rem"
+        gap: "20px"
 
       }}>
     {popular.map((recipe) => {
       
           return(
-            <SplideSlide>
+            <SplideSlide key={recipe.recipe.uri}>
             <Card key={recipe.recipe.uri}>
               <p>{recipe.recipe.label}</p>
               <img src={recipe.recipe.image} alt="recipe.label"/>
@@ -68,11 +76,11 @@ const Wrapper = styled.div`
 `;
 
 const Card = styled.div`
-min-height: 25 rem;
+min-height: 10 rem;
 border-radius: 2rem;
 display: flex;
 flex-direction: column;
-justify-content: flex-end;
+justify-content: center;
 
 img{
   border-radius: 2rem;
